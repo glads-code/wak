@@ -4617,7 +4617,7 @@ static void init_globals(int optind, int argc, char **argv, char *sepstring,
     struct zvalue zkey = ZVINIT(ZF_STR, 0, new_zstring(*pkey, pval - *pkey));
     struct zvalue *v = get_map_val(&m, &zkey);
     zstring_release(&zkey.vst);
-    if (v->vst) FFATAL("env var dup? (%s)", pkey);
+    if (v->vst) continue;    // doublon : garder le premier, comme getenv()
     *v = new_str_val(++pval);    // FIXME refcnt
     check_numeric_string(v);
   }
