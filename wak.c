@@ -4762,7 +4762,7 @@ static int awk(char *sepstring, char *progstring, struct arg_list *prog_args,
   struct scanner_state ss = {0};
   TT.scs = &ss;
 
-  setlocale(LC_NUMERIC, "");
+  // pas de setlocale(LC_NUMERIC) : nombres toujours écrits et lus avec un point
   progfiles_init(progstring, prog_args);
   compile();
 

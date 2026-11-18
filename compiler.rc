@@ -1,5 +1,6 @@
 #!/usr/bin/env rc
-# Compile wak avec tcc, le vérifie et l'installe dans ~/.local/bin/wak.
+# Compile wak avec tcc, le vérifie et l'installe dans /usr/local/bin/wak
+# (dans le PATH des tâches systemd, contrairement à ~/.local/bin).
 # Usage : ./compiler.rc
 flag e +
 if(test -d /usr/lib/plan9/bin) path=(/usr/lib/plan9/bin $path)
@@ -7,6 +8,6 @@ cd `{basename -d $0}
 # __STDC_NO_VLA__ : le regex.h de la glibc ne passe pas avec tcc sans lui
 tcc -std'='c99 -D__STDC_NO_VLA__'='1 -D_POSIX_C_SOURCE'='200809L wak.c -o wak.nouveau -lm
 ./essai.rc ./wak.nouveau
-mkdir -p $home/.local/bin
-mv wak.nouveau $home/.local/bin/wak
-echo installé : $home/.local/bin/wak
+sudo install -m 755 wak.nouveau /usr/local/bin/wak
+rm wak.nouveau
+echo installé : /usr/local/bin/wak

@@ -12,9 +12,11 @@ fn attendu {
 # UTF-8 : longueur, découpage, majuscules en caractères
 r=`{echo 'église' | $w '{ print length($0), substr($0, 1, 2), toupper($0) }'}
 attendu utf8 '6 ég ÉGLISE'
-# nombres : point décimal avec C.UTF-8
+# nombres : point décimal et printf corrects quelle que soit la locale
 r=`{$w 'BEGIN { print 7 / 2, sprintf("%.0f", 2 ^ 40) }'}
 attendu nombres '3.5 1099511627776'
+r=`{LC_ALL=fr_FR.UTF-8 $w 'BEGIN { printf "%s-%02d|%.1f\n", 2026, 8, 7 / 2 }'}
+attendu locale '2026-08|3.5'
 # nextfile
 r=`{{echo a; echo b} | $w '{ print; nextfile }'}
 attendu nextfile a

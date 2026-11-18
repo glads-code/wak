@@ -10,18 +10,20 @@ awk des scripts du poste, sous Linux comme sous Windows : [wak](https://github.c
 
 À savoir :
 - Pas de `strftime` ni de `systime` : la date vient de `date` (9base, 9pm), lue par wak.
-- Les nombres suivent la locale (`3,5` en français) : les scripts posent `LC_ALL=C.UTF-8`.
+- Les nombres s’écrivent toujours avec un point, quelle que soit la locale (voir Correctifs).
 - L'ordre de `for (k in t)` n'est pas celui de mawk : un résultat ne doit jamais en dépendre (trier les clés).
 - Environ 1,5 fois plus lent que mawk sur les gros fichiers de dvf.
 
-## Correctif
+## Correctifs
 
-wak s'arrêtait (« env var dup? ») quand une variable apparaît deux fois dans l'environnement, ce que fait le rc de 9base quand un script rc en lance un autre qui redéfinit la même fonction (`fn#tube`). Il garde maintenant le premier exemplaire, comme `getenv()`. Le reste de `wak.c` est la source d'origine (commit `c757c495efdc` de raygard/wak).
+Le reste de `wak.c` est la source d'origine (commit `c757c495efdc` de raygard/wak).
+- **Doublon dans l'environnement** : wak s'arrêtait (« env var dup? ») quand une variable apparaît deux fois, ce que fait le rc de 9base quand un script rc en lance un autre qui redéfinit la même fonction (`fn#tube`). Il garde maintenant le premier exemplaire, comme `getenv()`.
+- **Locale numérique** : wak ne charge plus `LC_NUMERIC`. En locale française, il écrivait `3,5` et `printf` se trompait dès deux conversions (`"%d %d"` : « too few args for printf »). Les nombres sont maintenant toujours écrits et lus avec un point.
 
 ## Compiler et installer
 
-Linux (deb) : `./compiler.rc` compile avec tcc, lance `./essai.rc` sur le binaire et l'installe dans `~/.local/bin/wak`.
+Linux (deb) : `./compiler.rc` compile avec tcc, lance `./essai.rc` sur le binaire et l'installe dans `/usr/local/bin/wak` (dans le PATH des tâches systemd).
 
-`./essai.rc <binaire>` vérifie ce dont nos scripts dépendent : UTF-8, nombres, `nextfile`, doublon d'environnement.
+`./essai.rc <binaire>` vérifie ce dont nos scripts dépendent : UTF-8, nombres (en locale française aussi), `nextfile`, doublon d'environnement.
 
 Windows : wak utilise `regex.h` (POSIX), absent de Windows. La compilation d'origine passe par msys2 et sa bibliothèque `libregex` ; une solution avec tcc pour Windows reste à trouver (voir `~/.claude/windows-natif.md`).
