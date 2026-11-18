@@ -1,0 +1,26 @@
+#!/usr/bin/env rc
+# Vérifie un binaire wak sur ce dont nos scripts dépendent.
+# Usage : ./essai.rc <binaire>
+flag e +
+if(test -d /usr/lib/plan9/bin) path=(/usr/lib/plan9/bin $path)
+w=$1
+LC_ALL=C.UTF-8
+# attendu <nom> <résultat voulu> : compare $"r (sortie du test) au résultat
+fn attendu {
+	~ $"r $2 || { echo $1 : obtenu « $"r », attendu « $2 » >[1=2]; exit $1 }
+}
+# UTF-8 : longueur, découpage, majuscules en caractères
+r=`{echo 'église' | $w '{ print length($0), substr($0, 1, 2), toupper($0) }'}
+attendu utf8 '6 ég ÉGLISE'
+# nombres : point décimal avec C.UTF-8
+r=`{$w 'BEGIN { print 7 / 2, sprintf("%.0f", 2 ^ 40) }'}
+attendu nombres '3.5 1099511627776'
+# nextfile
+r=`{{echo a; echo b} | $w '{ print; nextfile }'}
+attendu nextfile a
+# variable en double dans l'environnement (fonction redéfinie dans un rc
+# lancé par un autre)
+fn f { echo 1 }
+r=`{rc -c 'fn f { echo 2 }; '^$w^' ''BEGIN { print "ok" }'''}
+attendu environnement ok
+echo $w : essai réussi
