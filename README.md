@@ -26,4 +26,14 @@ Linux (deb) : `./compiler.rc` compile avec tcc, lance `./essai.rc` sur le binair
 
 `./essai.rc <binaire>` vérifie ce dont nos scripts dépendent : UTF-8, nombres (en locale française aussi), `nextfile`, doublon d'environnement.
 
-Windows : wak utilise `regex.h` (POSIX), absent de Windows. La compilation d'origine passe par msys2 et sa bibliothèque `libregex` ; une solution avec tcc pour Windows reste à trouver (voir `~/.claude/windows-natif.md`).
+Windows : wak utilise `regex.h` (POSIX), absent de Windows. Le dossier `regex/` reprend la regex de musl 1.2.5 (licence MIT, voir `regex/COPYRIGHT`), adaptée :
+- elle se compile hors de musl (`regex.h` sans en-têtes internes, `regerror` sans traduction) ;
+- elle lit l'UTF-8 quelle que soit la locale (décodeur en tête de `tre.h`), car le msvcrt de Windows n'a pas de locale UTF-8 ;
+- hors du plan de base Unicode (émojis), un caractère devient U+FFFD sous Windows (`wchar_t` sur 16 bits).
+
+Elle n'a pas `REG_STARTEND` : `regexec0` copie alors la chaîne avant une recherche bornée. Sous Linux, cette compilation se vérifie avec :
+
+    tcc -std=c99 -D_POSIX_C_SOURCE=200809L -Iregex wak.c regex/*.c -o wak-musl -lm
+    ./essai.rc ./wak-musl
+
+Elle donne les mêmes sorties que la regex de la glibc, environ 1,7 fois plus lentement. Reste à compiler `wak.exe` avec un tcc qui cible Windows (voir `~/.claude/windows-natif.md`).

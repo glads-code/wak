@@ -398,9 +398,22 @@ static int regexec0(regex_t *preg, char *string, long len, int nmatch,
   regmatch_t backup;
 
   if (!nmatch) pmatch = &backup;
+#if REG_STARTEND == 0
+  // Sans REG_STARTEND (regex de musl) : chaîne copiée et terminée par un
+  // NUL, pour ne pas lire au-delà de len.
+  char *copie = malloc(len + 1);
+  int r;
+  if (!copie) error_exit("plus de mémoire");
+  memcpy(copie, string, len);
+  copie[len] = 0;
+  r = regexec(preg, copie, nmatch, pmatch, eflags);
+  free(copie);
+  return r;
+#else
   pmatch->rm_so = 0;
   pmatch->rm_eo = len;
   return regexec(preg, string, nmatch, pmatch, eflags|REG_STARTEND);
+#endif
 }
 
 // Convert wc to utf8, returning bytes written. Does not null terminate.
