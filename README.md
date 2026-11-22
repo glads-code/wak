@@ -20,6 +20,15 @@ Le reste de `wak.c` est la source d'origine (commit `c757c495efdc` de raygard/wa
 - **Doublon dans l'environnement** : wak s'arrêtait (« env var dup? ») quand une variable apparaît deux fois, ce que fait le rc de 9base quand un script rc en lance un autre qui redéfinit la même fonction (`fn#tube`). Il garde maintenant le premier exemplaire, comme `getenv()`.
 - **Locale numérique** : wak ne charge plus `LC_NUMERIC`. En locale française, il écrivait `3,5` et `printf` se trompait dès deux conversions (`"%d %d"` : « too few args for printf »). Les nombres sont maintenant toujours écrits et lus avec un point.
 
+## Paquets Debian et Fedora
+
+Les [Releases](https://github.com/glads-code/wak/releases) contiennent un `.deb` (Debian 13) et un `.rpm` (Fedora 43), compilés avec gcc :
+
+    sudo apt install ./wak_1.0-1_amd64.deb             # Debian
+    sudo dnf install ./wak-1.0-1.fc43.x86_64.rpm       # Fedora
+
+Pour les reconstruire : `./paquets.rc [version]` (Docker, conteneurs `debian:13` et `fedora:43` jetables ; résultat dans `dist/`). Le `.deb` passe `essai.rc` ; Fedora n'ayant pas le rc de Plan 9, le `.rpm` vérifie les mêmes points en sh (`%check` de `paquets/wak.spec`).
+
 ## Installer sous Debian 13
 
     sudo apt install git tcc 9base

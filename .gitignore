@@ -2,3 +2,4 @@ wak.nouveau
 .claude/settings.local.json
 wak-musl
 wak.exe
+dist/
