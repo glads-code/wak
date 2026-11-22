@@ -1,0 +1,21 @@
+#!/usr/bin/env rc
+# Compile wak.exe (Windows, 64 bits) sur deb avec le tcc croisé
+# x86_64-win32, la regex de musl (regex/) et les compléments du msvcrt
+# (windows/). À vérifier ensuite sous Windows : rcsh essai.rc wak.exe < NUL
+# Usage : ./compiler-windows.rc [dossier des sources de tinycc]
+flag e +
+if(test -d /usr/lib/plan9/bin) path=(/usr/lib/plan9/bin $path)
+cd `{basename -d $0}
+t=$HOME/.cache/wak-src/tinycc
+if(~ $#* 1) t=$1
+if(! test -x $t/x86_64-win32-tcc.exe){echo 'tcc croisé absent : voir README' >[1=2]; exit tcc}
+# arborescence attendue par tcc (-B) : include/ et lib/ avec libtcc1.a
+b=`{mktemp -d}
+mkdir $b/lib
+cp -r $t/win32/include $b/include
+cp $t/include/*.h $b/include/
+cp $t/win32/lib/*.def $b/lib/
+cp $t/x86_64-win32-libtcc1.a $b/lib/libtcc1.a
+$t/x86_64-win32-tcc.exe -B$b -std'='c99 -w -Iwindows -Iregex -o wak.exe wak.c regex/*.c windows/compat.c
+rm -r $b
+echo compilé : wak.exe

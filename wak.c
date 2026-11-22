@@ -4836,6 +4836,11 @@ int main(int argc, char **argv)
 
   struct option longopts[] = {{"version", 0, 0, 'V'}, {"help", 0, 0, 'h'}, {0}};
 
+#ifdef _WIN32
+  // fichiers et tubes en binaire : pas de CRLF ajouté ni retiré
+  void wak_windows(void);
+  wak_windows();
+#endif
   char *p = setlocale(LC_CTYPE, "");
   if (!p || !strstr(p, "UTF-8")) p = setlocale(LC_CTYPE, "C.UTF-8");
   if (!p || !strstr(p, "UTF-8")) p = setlocale(LC_CTYPE, "en_US.UTF-8");
