@@ -29,9 +29,18 @@ Le reste de `wak.c` est la source d'origine (commit `c757c495efdc` de raygard/wa
 
 `./compiler.rc` compile avec tcc, lance `./essai.rc` sur le binaire et l'installe dans `/usr/local/bin/wak` (dans le PATH des tâches systemd). Vérifier : `echo 'é' | wak '{print length}'` affiche `1`.
 
-`./essai.rc <binaire>` vérifie ce dont des scripts rc portables dépendent : UTF-8, nombres (en locale française aussi), `nextfile`, doublon d'environnement.
+### Essai
+
+`./essai.rc <binaire>` vérifie un exécutable de wak. `<binaire>` est le chemin du wak à essayer, par exemple `./essai.rc /usr/local/bin/wak` (le wak installé) ou `./essai.rc ./wak.nouveau` (celui qui vient d'être compilé, avant de l'installer). Il affiche `essai réussi`, ou le premier point en échec avec le résultat obtenu et celui attendu. Points vérifiés :
+
+- **UTF-8** : `length`, `substr` et `toupper` comptent et convertissent des caractères, pas des octets (`église` fait 6 caractères).
+- **Nombres** : `7 / 2` s'écrit `3.5`, avec un point, même en locale française (`LC_ALL=fr_FR.UTF-8`), et `printf` à plusieurs conversions fonctionne.
+- **`nextfile`** : passe directement au fichier suivant sans lire la suite du fichier en cours (instruction de gawk et de POSIX 2024, absente de certains awk).
+- **Variable en double dans l'environnement** : quand un script rc définit une fonction `f`, puis lance un autre rc qui la redéfinit, ce dernier passe aux programmes qu'il lance deux variables `fn#f`. Le wak d'origine s'arrêtait alors (« env var dup? ») ; celui-ci garde la première, comme `getenv()`.
 
 ## Installer sous Windows
+
+Binaire prêt à l'emploi : `wak.exe` dans les [Releases](https://github.com/glads-code/wak/releases) (compilé sous Windows 11 selon la procédure ci-dessous, empreinte SHA-256 dans les notes de version). Le copier dans un dossier du `PATH` suffit. Pour le compiler soi-même :
 
 Prérequis : tcc récent dans `C:\tcc-dev`, voir [Installer tcc sous Windows](https://github.com/glads-code/rcsh#installer-tcc-sous-windows) (README de rcsh) ; pour l'essai, 9pm et le rcsh corrigé (même README). Dans PowerShell :
 
