@@ -23,6 +23,9 @@ attendu nextfile a
 # variable en double dans l'environnement (fonction redéfinie dans un rc
 # lancé par un autre)
 fn f { echo 1 }
-r=`{rc -c 'fn f { echo 2 }; '^$w^' ''BEGIN { print "ok" }'''}
+# rc s'appelle rcsh sous Windows (9pm)
+sh=rc
+if(~ $rcname *rcsh*) sh=rcsh
+r=`{$sh -c 'fn f { echo 2 }; '^$w^' ''BEGIN { print "ok" }'''}
 attendu environnement ok
 echo $w : essai réussi
