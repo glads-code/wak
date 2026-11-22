@@ -1,6 +1,6 @@
 # wak
 
-awk des scripts du poste, sous Linux comme sous Windows : [wak](https://github.com/raygard/wak) de Ray Gardner (awk de toybox, licence 0BSD, voir `LICENSE`), en version un seul fichier (`wak.c`), avec un correctif.
+awk portable, le même sous Linux comme sous Windows : [wak](https://github.com/raygard/wak) de Ray Gardner (awk de toybox, licence 0BSD, voir `LICENSE`), en version un seul fichier (`wak.c`), avec un correctif.
 
 ## Pourquoi wak
 
@@ -12,7 +12,7 @@ awk des scripts du poste, sous Linux comme sous Windows : [wak](https://github.c
 - Pas de `strftime` ni de `systime` : la date vient de `date` (9base, 9pm), lue par wak.
 - Les nombres s’écrivent toujours avec un point, quelle que soit la locale (voir Correctifs).
 - L'ordre de `for (k in t)` n'est pas celui de mawk : un résultat ne doit jamais en dépendre (trier les clés).
-- Environ 1,5 fois plus lent que mawk sur les gros fichiers de dvf.
+- Environ 1,5 fois plus lent que mawk sur de gros fichiers CSV.
 
 ## Correctifs
 
@@ -22,13 +22,13 @@ Le reste de `wak.c` est la source d'origine (commit `c757c495efdc` de raygard/wa
 
 ## Compiler et installer
 
-Linux (deb) : `./compiler.rc` compile avec tcc, lance `./essai.rc` sur le binaire et l'installe dans `/usr/local/bin/wak` (dans le PATH des tâches systemd).
+Linux : `./compiler.rc` compile avec tcc, lance `./essai.rc` sur le binaire et l'installe dans `/usr/local/bin/wak` (dans le PATH des tâches systemd).
 
-`./essai.rc <binaire>` vérifie ce dont nos scripts dépendent : UTF-8, nombres (en locale française aussi), `nextfile`, doublon d'environnement.
+`./essai.rc <binaire>` vérifie ce dont des scripts rc portables dépendent : UTF-8, nombres (en locale française aussi), `nextfile`, doublon d'environnement.
 
 ## Windows
 
-`./compiler-windows.rc` produit `wak.exe` (64 bits) sur deb, avec le tcc croisé x86_64-win32 compilé depuis les sources de tinycc (`https://repo.or.cz/tinycc.git`, dans `~/.cache/wak-src/tinycc` par défaut, autre dossier en argument) :
+`./compiler-windows.rc` produit `wak.exe` (64 bits) sous Linux, avec le tcc croisé x86_64-win32 compilé depuis les sources de tinycc (`https://repo.or.cz/tinycc.git`, dans `~/.cache/wak-src/tinycc` par défaut, autre dossier en argument) :
 
     ./configure --targetos=WIN32 --cpu=x86_64 --enable-cross
     make cross-x86_64-win32
@@ -59,7 +59,7 @@ Dans `wak.c`, sous `_WIN32`, et dans `windows/` (`getopt_long`, `getline`) :
 
 Écart connu : la glibc lit l'hexadécimal (`"0x10" + 0` vaut 16, et la constante `0x10` aussi), le msvcrt non (0). Aucun de nos programmes ne s'en sert.
 
-Dans la VM Windows 11 : `essai.rc` réussi, et sorties identiques à Linux à l'octet près sur des programmes d'essai (accents, classes, `gsub`, `match`, `split`, `RS` en regex, `nextfile`, nombres et `printf`) et 20 000 lignes de DVF.
+Sous Windows 11 : `essai.rc` réussi, et sorties identiques à Linux à l'octet près sur des programmes d'essai (accents, classes, `gsub`, `match`, `split`, `RS` en regex, `nextfile`, nombres et `printf`) et 20 000 lignes de CSV réel.
 
 ## Support
 

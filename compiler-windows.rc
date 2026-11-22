@@ -1,5 +1,5 @@
 #!/usr/bin/env rc
-# Compile wak.exe (Windows, 64 bits) sur deb avec le tcc croisé
+# Compile wak.exe (Windows, 64 bits) sous Linux avec le tcc croisé
 # x86_64-win32, la regex de musl (regex/) et les compléments du msvcrt
 # (windows/). À vérifier ensuite sous Windows : rcsh essai.rc wak.exe < NUL
 # Usage : ./compiler-windows.rc [dossier des sources de tinycc]

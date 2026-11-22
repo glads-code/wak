@@ -1,5 +1,5 @@
 #!/usr/bin/env rc
-# Vérifie un binaire wak sur ce dont nos scripts dépendent.
+# Vérifie un binaire wak sur ce dont des scripts rc portables dépendent.
 # Usage : ./essai.rc <binaire>
 flag e +
 if(test -d /usr/lib/plan9/bin) path=(/usr/lib/plan9/bin $path)
