@@ -58,18 +58,24 @@ static int tre_utf8_mbtowc(wchar_t *pwc, const char *s, size_t n)
 	else if (c >= 0xc2 && c < 0xe0) { l = 2; c &= 0x1f; }
 	else if (c >= 0xe0 && c < 0xf0) { l = 3; c &= 0x0f; }
 	else if (c >= 0xf0 && c < 0xf5) { l = 4; c &= 0x07; }
-	else return -1;
-	if (l > n) return -1;
+	else goto invalide;
+	if (l > n) goto invalide;
 	for (i = 1; i < l; i++) {
-		if ((p[i] & 0xc0) != 0x80) return -1;
+		if ((p[i] & 0xc0) != 0x80) goto invalide;
 		c = c << 6 | (p[i] & 0x3f);
 	}
 	if ((l == 3 && c < 0x800) || (l == 4 && (c < 0x10000 || c > 0x10ffff))
-	    || (c >= 0xd800 && c < 0xe000)) return -1;
+	    || (c >= 0xd800 && c < 0xe000)) goto invalide;
 	/* wchar_t sur 16 bits (Windows) : hors du plan de base, U+FFFD */
 	if (sizeof(wchar_t) < 4 && c > 0xffff) c = 0xfffd;
 	if (pwc) *pwc = c;
 	return c ? l : 0;
+invalide:
+	/* octet hors UTF-8 (fichier en Latin-1) : un caractère à part
+	   (U+DC00 + octet, jamais un vrai caractère), comme la glibc qui
+	   continue la recherche au lieu de l'arrêter */
+	if (pwc) *pwc = 0xdc00 | *p;
+	return 1;
 }
 
 #undef  TRE_MBSTATE

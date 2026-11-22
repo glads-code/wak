@@ -39,7 +39,7 @@ Vérifier ensuite sous Windows, avec le rcsh corrigé (dépôt `rcsh`) : `rcsh e
 
 wak utilise `regex.h` (POSIX), absent de Windows. Le dossier `regex/` reprend la regex de musl 1.2.5 (licence MIT, voir `regex/COPYRIGHT`), adaptée :
 - elle se compile hors de musl (`regex.h` sans en-têtes internes, `regerror` sans traduction, limites `CHARCLASS_NAME_MAX` et `RE_DUP_MAX` définies) ;
-- elle lit l'UTF-8 quelle que soit la locale (décodeur en tête de `tre.h`), car le msvcrt de Windows n'a pas de locale UTF-8 ;
+- elle lit l'UTF-8 quelle que soit la locale (décodeur en tête de `tre.h`), car le msvcrt de Windows n'a pas de locale UTF-8 ; un octet hors UTF-8 (fichier en Latin-1) y devient un caractère à part, et la recherche continue, comme avec la glibc ;
 - les classes `[:alpha:]`… passent par les fonctions `isw…` (le msvcrt n'a pas `wctype()`) ;
 - hors du plan de base Unicode (émojis), un caractère devient U+FFFD sous Windows (`wchar_t` sur 16 bits).
 
