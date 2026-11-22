@@ -20,20 +20,34 @@ Le reste de `wak.c` est la source d'origine (commit `c757c495efdc` de raygard/wa
 - **Doublon dans l'environnement** : wak s'arrêtait (« env var dup? ») quand une variable apparaît deux fois, ce que fait le rc de 9base quand un script rc en lance un autre qui redéfinit la même fonction (`fn#tube`). Il garde maintenant le premier exemplaire, comme `getenv()`.
 - **Locale numérique** : wak ne charge plus `LC_NUMERIC`. En locale française, il écrivait `3,5` et `printf` se trompait dès deux conversions (`"%d %d"` : « too few args for printf »). Les nombres sont maintenant toujours écrits et lus avec un point.
 
-## Compiler et installer
+## Installer sous Debian 13
 
-Linux : `./compiler.rc` compile avec tcc, lance `./essai.rc` sur le binaire et l'installe dans `/usr/local/bin/wak` (dans le PATH des tâches systemd).
+    sudo apt install git tcc 9base
+    git clone https://github.com/glads-code/wak.git
+    cd wak
+    ./compiler.rc
+
+`./compiler.rc` compile avec tcc, lance `./essai.rc` sur le binaire et l'installe dans `/usr/local/bin/wak` (dans le PATH des tâches systemd). Vérifier : `echo 'é' | wak '{print length}'` affiche `1`.
 
 `./essai.rc <binaire>` vérifie ce dont des scripts rc portables dépendent : UTF-8, nombres (en locale française aussi), `nextfile`, doublon d'environnement.
 
-## Windows
+## Installer sous Windows
 
-`./compiler-windows.rc` produit `wak.exe` (64 bits) sous Linux, avec le tcc croisé x86_64-win32 compilé depuis les sources de tinycc (`https://repo.or.cz/tinycc.git`, dans `~/.cache/wak-src/tinycc` par défaut, autre dossier en argument) :
+Le binaire Windows se compile sous Debian 13 avec le tcc croisé, à construire une fois depuis les sources de tinycc (dossier attendu par défaut par les scripts : `~/.cache/wak-src/tinycc`) :
 
+    sudo apt install git gcc make
+    git clone https://repo.or.cz/tinycc.git ~/.cache/wak-src/tinycc
+    cd ~/.cache/wak-src/tinycc
     ./configure --targetos=WIN32 --cpu=x86_64 --enable-cross
-    make cross-x86_64-win32
+    make cross-x86_64-win32 cross-i386-win32
 
-Vérifier ensuite sous Windows, avec le rcsh corrigé (dépôt `rcsh`) : `rcsh essai.rc wak.exe < NUL`.
+Puis, dans le dépôt wak :
+
+    ./compiler-windows.rc
+
+Copier `wak.exe` (64 bits, sans DLL) sous Windows dans un dossier du `PATH` (par exemple `C:\9pm\bin` si 9pm est installé, voir le dépôt [rcsh](https://github.com/glads-code/rcsh)). Vérifier dans le dépôt, avec ce rcsh : `rcsh essai.rc wak.exe < NUL`.
+
+## Détails Windows
 
 ### Regex
 
