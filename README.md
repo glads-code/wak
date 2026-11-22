@@ -33,19 +33,19 @@ Le reste de `wak.c` est la source d'origine (commit `c757c495efdc` de raygard/wa
 
 ## Installer sous Windows
 
-Le binaire Windows se compile sous Debian 13 avec le tcc croisé, à construire une fois depuis les sources de tinycc (dossier attendu par défaut par les scripts : `~/.cache/wak-src/tinycc`) :
+Prérequis : tcc récent dans `C:\tcc-dev`, voir [Installer tcc sous Windows](https://github.com/glads-code/rcsh#installer-tcc-sous-windows) (README de rcsh) ; pour l'essai, 9pm et le rcsh corrigé (même README). Dans PowerShell :
 
-    sudo apt install git gcc make
-    git clone https://repo.or.cz/tinycc.git ~/.cache/wak-src/tinycc
-    cd ~/.cache/wak-src/tinycc
-    ./configure --targetos=WIN32 --cpu=x86_64 --enable-cross
-    make cross-x86_64-win32 cross-i386-win32
+```powershell
+cd $env:USERPROFILE
+curl.exe -Lo wak.zip https://github.com/glads-code/wak/archive/refs/heads/main.zip
+tar -xf wak.zip
+cd wak-main
+C:\tcc-dev\tcc.exe -std=c99 -w -Iwindows -Iregex -o wak.exe wak.c (Get-ChildItem regex\*.c).FullName windows\compat.c
+cmd /c "rcsh essai.rc wak.exe < NUL"    # wak.exe : essai réussi
+Copy-Item wak.exe C:\9pm\bin\           # ou tout autre dossier du PATH
+```
 
-Puis, dans le dépôt wak :
-
-    ./compiler-windows.rc
-
-Copier `wak.exe` (64 bits, sans DLL) sous Windows dans un dossier du `PATH` (par exemple `C:\9pm\bin` si 9pm est installé, voir le dépôt [rcsh](https://github.com/glads-code/rcsh)). Vérifier dans le dépôt, avec ce rcsh : `rcsh essai.rc wak.exe < NUL`.
+`wak.exe` : 64 bits, sans DLL.
 
 ## Détails Windows
 
