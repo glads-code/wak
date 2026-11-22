@@ -60,3 +60,7 @@ Dans `wak.c`, sous `_WIN32`, et dans `windows/` (`getopt_long`, `getline`) :
 Écart connu : la glibc lit l'hexadécimal (`"0x10" + 0` vaut 16, et la constante `0x10` aussi), le msvcrt non (0). Aucun de nos programmes ne s'en sert.
 
 Dans la VM Windows 11 : `essai.rc` réussi, et sorties identiques à Linux à l'octet près sur des programmes d'essai (accents, classes, `gsub`, `match`, `split`, `RS` en regex, `nextfile`, nombres et `printf`) et 20 000 lignes de DVF.
+
+## Support
+
+Dépôt publié tel quel, pour nos propres besoins : pas de support, les issues et pull requests ne sont pas suivies.
