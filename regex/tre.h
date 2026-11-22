@@ -32,11 +32,19 @@
 #include <regex.h>
 #include <wchar.h>
 #include <wctype.h>
+#include <stdint.h>
+#include <string.h>
 #include <stdlib.h>
 
 /* Adaptation pour wak : sources hors de musl, et UTF-8 quelle que soit
    la locale (le msvcrt de Windows ne connaît pas de locale UTF-8). */
 #define hidden
+#ifndef CHARCLASS_NAME_MAX
+#define CHARCLASS_NAME_MAX 14
+#endif
+#ifndef RE_DUP_MAX
+#define RE_DUP_MAX 255
+#endif
 #undef mbtowc
 #define mbtowc tre_utf8_mbtowc
 static int tre_utf8_mbtowc(wchar_t *pwc, const char *s, size_t n)
@@ -100,16 +108,44 @@ typedef wint_t tre_cint_t;
 #define tre_toupper towupper
 #define tre_strlen  wcslen
 
-/* Use system provided iswctype() and wctype(). */
-typedef wctype_t tre_ctype_t;
-#define tre_isctype iswctype
-#define tre_ctype   wctype
+/* Classes [:nom:] par les fonctions isw… : le msvcrt de Windows n'a pas
+   wctype(). 0 veut dire « classe inconnue », comme pour wctype(). */
+typedef int tre_ctype_t;
+static tre_ctype_t tre_ctype(const char *s)
+{
+	static const char *noms[] = { "alnum", "alpha", "blank", "cntrl",
+		"digit", "graph", "lower", "print", "punct", "space", "upper",
+		"xdigit", 0 };
+	int i;
+	for (i = 0; noms[i]; i++)
+		if (!strcmp(s, noms[i]))
+			return i + 1;
+	return 0;
+}
+static int tre_isctype(tre_cint_t c, tre_ctype_t t)
+{
+	switch (t) {
+	case 1: return iswalnum(c);
+	case 2: return iswalpha(c);
+	case 3: return c == ' ' || c == '\t';
+	case 4: return iswcntrl(c);
+	case 5: return iswdigit(c);
+	case 6: return iswgraph(c);
+	case 7: return iswlower(c);
+	case 8: return iswprint(c);
+	case 9: return iswpunct(c);
+	case 10: return iswspace(c);
+	case 11: return iswupper(c);
+	case 12: return iswxdigit(c);
+	}
+	return 0;
+}
 
 /* Returns number of bytes to add to (char *)ptr to make it
    properly aligned for the type. */
 #define ALIGN(ptr, type) \
-  ((((long)ptr) % sizeof(type)) \
-   ? (sizeof(type) - (((long)ptr) % sizeof(type))) \
+  ((((uintptr_t)ptr) % sizeof(type)) \
+   ? (sizeof(type) - (((uintptr_t)ptr) % sizeof(type))) \
    : 0)
 
 #undef MAX
