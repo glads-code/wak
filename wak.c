@@ -51,6 +51,14 @@ ssize_t getline(char **lineptr, size_t *n, FILE *stream);
 #define REG_STARTEND 0
 #endif
 
+// entier des conversions %d %o %u %x de printf : long a 64 bits sous
+// Linux, 32 sous Windows
+#ifdef _WIN32
+#define AWKLONG long long
+#else
+#define AWKLONG long
+#endif
+
 struct arg_list {
   struct arg_list *next;
   char *arg;
@@ -2705,6 +2713,14 @@ static void check_numeric_string(struct zvalue *v)
 static struct zstring *num_to_zstring(double n, char *fmt)
 {
   int k;
+#ifdef _WIN32
+  // NaN et infini écrits comme la glibc (le msvcrt écrit 1.#INF)
+  if (isnan(n) || isinf(n)) {
+    k = snprintf(TT.pbuf, PBUFSIZE, "%s%s", signbit(n) ? "-" : "",
+      isnan(n) ? "nan" : "inf");
+    return new_zstring(TT.pbuf, k);
+  }
+#endif
   if (n == (long long)n) k = snprintf(TT.pbuf, PBUFSIZE, "%lld", (long long)n);
   else k = snprintf(TT.pbuf, PBUFSIZE, fmt, n);
   if (k < 0 || k >= PBUFSIZE) FFATAL("error encoding %f via '%s'", n, fmt);
@@ -3396,32 +3412,68 @@ static void varprint(int(*fpvar)(FILE *, const char *, ...), FILE *outfp, int na
         }
         if (strchr("cdiouxX", fmtc)) {
           pfmt = strcpy(TT.pbuf, fmt);
+#ifdef _WIN32
+          // long n'a que 32 bits sous Windows : entiers en long long (« ll »)
+          if (fmtc != 'c') {
+            int j = nnc + 1;
+            while (j > 1 && pfmt[j-1] == 'l') j--;
+            strcpy(pfmt+j, "ll_");
+            pfmt[j+2] = fmtc;
+          } else
+#endif
           if (pfmt[nnc] != 'l') {
             strcpy(pfmt+nnc+1, "l_");
             pfmt[nnc+2] = fmtc;
           }
         }
+#ifdef _WIN32
+        // NaN et infini écrits comme la glibc (le msvcrt écrit 1.#INF)
+        if (strchr("aAeEfFgG", fmtc) && (isnan(n) || isinf(n))) {
+          static char nb[8];
+          char *p;
+          strcpy(nb, signbit(n) ? "-" : "");
+          strcat(nb, isnan(n) ? "nan" : "inf");
+          if (strchr("AEFG", fmtc))
+            for (p = nb; *p; p++) *p = toupper(*p);
+          pfmt = strcpy(TT.pbuf, fmt);
+          if ((p = strchr(pfmt, '.')) && !strchr(p, '*')) *p = 0;
+          else pfmt[strlen(pfmt)-1] = 0;
+          strcat(pfmt, "s");
+          s = nb;
+          fmtc = 's';
+        }
+        // %c : le msvcrt n'écrit pas un caractère large en UTF-8
+        if (fmtc == 'c') {
+          static char cb[8];
+          if (n > 0x10ffff) n = 0xfffd;
+          cb[wctoutf8(cb, (unsigned)n)] = 0;
+          pfmt = strcpy(TT.pbuf, fmt);
+          pfmt[strlen(pfmt)-1] = 's';
+          s = cb;
+          fmtc = 's';
+        }
+#endif
         if (fmtc == 'c' && n > 0x10ffff) n = 0xfffd;  // musl won't take larger "wchar"
         switch (nargsneeded) {
           case 1:
             if (fmtc == 's') fpvar(outfp, pfmt, s);
             else if (fmtc == 'c') fpvar(outfp, pfmt, (wint_t)n);
-            else if (strchr("di", fmtc)) fpvar(outfp, pfmt, (long)n);
-            else if (strchr("ouxX", fmtc)) fpvar(outfp, pfmt, (unsigned long)n);
+            else if (strchr("di", fmtc)) fpvar(outfp, pfmt, (AWKLONG)n);
+            else if (strchr("ouxX", fmtc)) fpvar(outfp, pfmt, (unsigned AWKLONG)n);
             else fpvar(outfp, pfmt, n);
             break;
           case 2:
             if (fmtc == 's') fpvar(outfp, pfmt, cnt2, s);
             else if (fmtc == 'c') fpvar(outfp, pfmt, cnt2, (wint_t)n);
-            else if (strchr("di", fmtc)) fpvar(outfp, pfmt, cnt2, (long)n);
-            else if (strchr("ouxX", fmtc)) fpvar(outfp, pfmt, cnt2, (unsigned long)n);
+            else if (strchr("di", fmtc)) fpvar(outfp, pfmt, cnt2, (AWKLONG)n);
+            else if (strchr("ouxX", fmtc)) fpvar(outfp, pfmt, cnt2, (unsigned AWKLONG)n);
             else fpvar(outfp, pfmt, cnt2, n);
             break;
           case 3:
             if (fmtc == 's') fpvar(outfp, pfmt, cnt1, cnt2, s);
             else if (fmtc == 'c') fpvar(outfp, pfmt, cnt1, cnt2, (wint_t)n);
-            else if (strchr("di", fmtc)) fpvar(outfp, pfmt, cnt1, cnt2, (long)n);
-            else if (strchr("ouxX", fmtc)) fpvar(outfp, pfmt, cnt1, cnt2, (unsigned long)n);
+            else if (strchr("di", fmtc)) fpvar(outfp, pfmt, cnt1, cnt2, (AWKLONG)n);
+            else if (strchr("ouxX", fmtc)) fpvar(outfp, pfmt, cnt1, cnt2, (unsigned AWKLONG)n);
             else fpvar(outfp, pfmt, cnt1, cnt2, n);
             break;
         }
